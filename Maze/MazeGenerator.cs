@@ -190,7 +190,7 @@ namespace Maze
             {
                 for (int x = 0; x < columnCount; x += 2)
                 {
-                    var cell = new Cell(new Point(y, x));
+                    var cell = new Cell(new Point(y / 2, x / 2));
                     cell.Grid[0, 0] = strList[y][x];
                     cell.Grid[1, 1] = strList[y + 1][x + 1];
                     cell.Grid[1, 0] = strList[y + 1][x];
