@@ -1,6 +1,6 @@
 using Xunit;
-using Maze;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace Maze.Tests
 {
@@ -9,9 +9,29 @@ namespace Maze.Tests
         [Fact]
         public void Create_EmptyMazeWithAStartingCell_EnumerableWithOneCellWithPlusChar()
         {
-            var generator = new MazeGenerator().Generate(5, 5);
+        }
 
-            Assert.Equal(new Cell[4, 5], generator);
+        [Fact]
+        public void Check_CreatedMaze()
+        {
+            var generator = new MazeGenerator(4, 4);
+            var castedMaze = generator.MazeGrid.Cast<Cell>();
+            var list = new List<IEnumerable<char>>();
+
+            foreach (var cell in castedMaze)
+            {
+                list.Add(cell.Grid.Cast<char>());
+            }
+
+            Assert.Empty(list);
+        }
+
+        [Fact]
+        public void Check_StringMaze()
+        {
+            var generator = new MazeGenerator(4, 4);
+
+            Assert.Empty(generator.GetMazeInString());
         }
     }
 }

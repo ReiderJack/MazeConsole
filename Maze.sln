@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Maze", "Maze\Maze.csproj", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Maze.Tests", "Maze.Tests\Maze.Tests.csproj", "{A44ECE5C-0268-4933-8545-BC00EEDA1DE3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Main", "Main\Main.csproj", "{E2675391-9059-4CA1-B953-050523672906}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,5 +46,17 @@ Global
 		{A44ECE5C-0268-4933-8545-BC00EEDA1DE3}.Release|x64.Build.0 = Release|Any CPU
 		{A44ECE5C-0268-4933-8545-BC00EEDA1DE3}.Release|x86.ActiveCfg = Release|Any CPU
 		{A44ECE5C-0268-4933-8545-BC00EEDA1DE3}.Release|x86.Build.0 = Release|Any CPU
+		{E2675391-9059-4CA1-B953-050523672906}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2675391-9059-4CA1-B953-050523672906}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2675391-9059-4CA1-B953-050523672906}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E2675391-9059-4CA1-B953-050523672906}.Debug|x64.Build.0 = Debug|Any CPU
+		{E2675391-9059-4CA1-B953-050523672906}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E2675391-9059-4CA1-B953-050523672906}.Debug|x86.Build.0 = Debug|Any CPU
+		{E2675391-9059-4CA1-B953-050523672906}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2675391-9059-4CA1-B953-050523672906}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2675391-9059-4CA1-B953-050523672906}.Release|x64.ActiveCfg = Release|Any CPU
+		{E2675391-9059-4CA1-B953-050523672906}.Release|x64.Build.0 = Release|Any CPU
+		{E2675391-9059-4CA1-B953-050523672906}.Release|x86.ActiveCfg = Release|Any CPU
+		{E2675391-9059-4CA1-B953-050523672906}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
