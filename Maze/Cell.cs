@@ -11,10 +11,8 @@ namespace Maze
         public List<Cell> NeighbourCells { get; set; } = new List<Cell>();
 
         public Cell PreviousCell { get; set; }
-        public Cell NextCell { get; set; }
 
         public bool IsVisited { get; set; }
-        public bool IsDeadEnd { get; set; }
 
         public Cell(Point pointInMaze)
         {

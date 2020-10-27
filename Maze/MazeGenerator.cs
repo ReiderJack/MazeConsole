@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -101,11 +102,8 @@ namespace Maze
                 Cell nextCell = GetRandomNotVisitedNeighbourOrNull(random);
                 if (nextCell == null)
                 {
-                    return;
-                    // CurrentCell.IsDeadEnd = true;
-                    // CurrentCell = CurrentCell.PreviousCell;
-                    // continue;
-                    // Vist previous ones
+                    CurrentCell = CurrentCell.PreviousCell;
+                    continue;
                 }
                 MakePathToUnVisitedCell(nextCell);
             }
@@ -119,14 +117,12 @@ namespace Maze
             while (neighboursCount > checkedNeighbours.Count())
             {
                 int randomNum = random.Next(0, neighboursCount);
-                if (!checkedNeighbours.Contains(randomNum))
-                {
-                    checkedNeighbours.Add(randomNum);
-                    if (neighbours[randomNum].IsVisited == false)
-                    {
-                        return neighbours[randomNum];
-                    }
-                }
+
+                if (checkedNeighbours.Contains(randomNum)) continue;
+                checkedNeighbours.Add(randomNum);
+
+                if (neighbours[randomNum].IsVisited) continue;
+                return neighbours[randomNum];
             }
 
             return null;
@@ -158,11 +154,10 @@ namespace Maze
             nextCell.PointInGrid = neighbourCellGridCellToOpen;
             nextCell.PreviousCell = CurrentCell;
 
-            CurrentCell.NextCell = nextCell;
             CurrentCell = nextCell;
         }
 
-        public IEnumerable<string> GetMazeInString()
+        public IEnumerable<string> GetMazeInRowsAsStrings()
         {
             var list = new List<string>();
             StringBuilder firstRow = new StringBuilder();
@@ -183,6 +178,40 @@ namespace Maze
             }
 
             return list;
+        }
+
+        public static Cell[,] GetMazeFromStrings(IEnumerable<string> strings)
+        {
+            List<string> strList = strings.ToList();
+            int rowCount = strings.Count();
+            int columnCount = strList[0].Length;
+            var maze = new Cell[rowCount / 2, columnCount / 2];
+            for (int y = 0; y < rowCount; y += 2)
+            {
+                for (int x = 0; x < columnCount; x += 2)
+                {
+                    var cell = new Cell(new Point(y, x));
+                    cell.Grid[0, 0] = strList[y][x];
+                    cell.Grid[1, 1] = strList[y + 1][x + 1];
+                    cell.Grid[1, 0] = strList[y + 1][x];
+                    cell.Grid[0, 1] = strList[y][x + 1];
+                    maze[y / 2, x / 2] = cell;
+                }
+            }
+
+            return maze;
+        }
+
+        public void SaveDungeonToFile(string path)
+        {
+            using (Stream s = File.Create(path))
+            using (TextWriter writer = new StreamWriter(s))
+            {
+                foreach (string row in GetMazeInRowsAsStrings())
+                {
+                    writer.WriteLine(row);
+                }
+            }
         }
     }
 }
