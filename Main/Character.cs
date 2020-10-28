@@ -1,6 +1,7 @@
 using System;
+using Maze;
 
-namespace Maze
+namespace Main
 {
     public class Character
     {

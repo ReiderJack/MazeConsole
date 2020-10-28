@@ -1,5 +1,7 @@
 using System;
-namespace Maze
+using Maze;
+
+namespace Main
 {
     public class Game
     {
@@ -114,7 +116,7 @@ namespace Maze
                         break;
                 }
                 DrawMaze(character.Maze);
-                if(AnnounceLeftBoxes(character, generator))
+                if (AnnounceLeftBoxes(character, generator))
                 {
                     Console.WriteLine("You collected all boxes!\nYou won!\nPress Escape to exit.");
                     break;
@@ -139,7 +141,7 @@ namespace Maze
         {
             int boxesLeft = maze.BoxCount - character.CollectedBoxes;
             Console.WriteLine($"Boxes left to collect: {boxesLeft}");
-            if(boxesLeft == 0) return true;
+            if (boxesLeft == 0) return true;
             return false;
         }
 
