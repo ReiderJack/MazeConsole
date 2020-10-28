@@ -6,6 +6,7 @@ namespace Maze
     {
         public Point CurrentPosition { get; set; }
         public char[,] Maze { get; set; }
+        public int CollectedBoxes { get; set; }
 
         public Character(Point startingPosition, char[,] maze)
         {
@@ -37,6 +38,7 @@ namespace Maze
             if (y < 0 || y >= Maze.GetLength(0) ||
                 x < 0 || x >= Maze.GetLength(1)) return false;
             if (Maze[y, x] == Cell.Wall) return false;
+            if (Maze[y, x] == Cell.Box) CollectedBoxes++;
             return true;
         }
     }

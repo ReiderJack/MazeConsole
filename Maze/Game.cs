@@ -33,9 +33,9 @@ namespace Maze
 
                 Console.WriteLine("Write box count to spawn: ");
                 int boxCount;
-                if (int.TryParse(Console.ReadLine(), out boxCount) == false)
+                while (int.TryParse(Console.ReadLine(), out boxCount) == false)
                 {
-                    Console.WriteLine("Invalid input");
+                    Console.WriteLine("Invalid number.\nTry again:");
                 }
                 generator.SpawnBoxesRandomly(boxCount);
                 generator.SaveDungeonToFile(absolutePath);
@@ -114,6 +114,11 @@ namespace Maze
                         break;
                 }
                 DrawMaze(character.Maze);
+                if(AnnounceLeftBoxes(character, generator))
+                {
+                    Console.WriteLine("You collected all boxes!\nYou won!\nPress Escape to exit.");
+                    break;
+                }
             }
         }
 
@@ -129,6 +134,15 @@ namespace Maze
                 Console.WriteLine();
             }
         }
+
+        private bool AnnounceLeftBoxes(Character character, MazeGenerator maze)
+        {
+            int boxesLeft = maze.BoxCount - character.CollectedBoxes;
+            Console.WriteLine($"Boxes left to collect: {boxesLeft}");
+            if(boxesLeft == 0) return true;
+            return false;
+        }
+
 
         public void PrintMainMenu()
         {

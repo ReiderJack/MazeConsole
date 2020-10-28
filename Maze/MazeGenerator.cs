@@ -12,6 +12,8 @@ namespace Maze
         public Cell[,] MazeGrid;
         public Cell StartingCell { get; }
         public Cell CurrentCell { get; private set; }
+        private int boxCount = 0;
+        public int BoxCount => boxCount; 
 
         public MazeGenerator()
         {
@@ -36,6 +38,7 @@ namespace Maze
 
         public void SpawnBoxesRandomly(int count)
         {
+            boxCount = count;
             // Count should not be more than cells
             Random random = new Random();
             List<Cell> checkedCells = new List<Cell>();
@@ -269,10 +272,16 @@ namespace Maze
                     cell.Grid[1, 0] = strList[yPlus][x];
                     cell.Grid[0, 1] = strList[y][xPlus];
                     maze[yDiv, xDiv] = cell;
+                    boxCount += GetBoxesFromCell(cell);
                 }
             }
 
             return maze;
+        }
+
+        private int GetBoxesFromCell(Cell cell)
+        {
+            return cell.Grid.Cast<char>().Count(c => c == Cell.Box);
         }
 
         public void SaveDungeonToFile(string path)
