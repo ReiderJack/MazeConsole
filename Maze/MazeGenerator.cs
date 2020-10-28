@@ -235,6 +235,10 @@ namespace Maze
         public void GetMazeFromFile(string filePath)
         {
             MazeGrid = GetMazeFromStrings(GetStringsFromFile(filePath));
+            foreach (var cell in MazeGrid.Cast<Cell>())
+            {
+               boxCount += GetBoxesFromCell(cell); 
+            }
         }
 
         public IEnumerable<string> GetStringsFromFile(string filePath)
@@ -251,7 +255,7 @@ namespace Maze
             return result;
         }
 
-        private Cell[,] GetMazeFromStrings(IEnumerable<string> strings)
+        public static Cell[,] GetMazeFromStrings(IEnumerable<string> strings)
         {
             List<string> strList = strings.ToList();
             int rowCount = strings.Count();
@@ -272,7 +276,6 @@ namespace Maze
                     cell.Grid[1, 0] = strList[yPlus][x];
                     cell.Grid[0, 1] = strList[y][xPlus];
                     maze[yDiv, xDiv] = cell;
-                    boxCount += GetBoxesFromCell(cell);
                 }
             }
 
