@@ -8,6 +8,7 @@ namespace Maze.Tests
     {
         private readonly Cell[,] grid2x2;
         private readonly List<string> grid2x2AsStringList;
+        private readonly Cell cellForSpawning;
         public MazeTests()
         {
             grid2x2AsStringList = new List<string> { "  + ",
@@ -36,6 +37,8 @@ namespace Maze.Tests
             cell11.Grid[1, 1] = ' ';
 
             grid2x2 = new Cell[,] { { cell00, cell01 }, { cell10, cell11 } };
+
+            cellForSpawning = new Cell(new Point(0, 0));
         }
 
         [Fact]
@@ -84,15 +87,22 @@ namespace Maze.Tests
         }
 
         [Fact]
-        public void SpawnBoxes_WithSpwanBoxesRandomly_ReturnMaze()
+        public void SpawnBoxRandomly_WithGetAllPointsOfTile_ReturnPoints()
         {
-            var expected = grid2x2.Cast<Cell>().Select(c => c.Grid);
+            var cell = new Cell(new Point(0, 0));
+            cell.Grid[0, 0] = ' ';
+            cell.Grid[0, 1] = '+';
+            cell.Grid[1, 0] = ' ';
+            cell.Grid[1, 1] = ' ';
 
-            var generator = new MazeGenerator(2,2);
-            generator.SpawnBoxesRandomly(2);
-            var actual = generator.MazeGrid.Cast<Cell>().Select(c => c.Grid);
+            var expected = new Cell(new Point(0, 0));
+            expected.Grid[0, 0] = ' ';
+            expected.Grid[0, 1] = 'B';
+            expected.Grid[1, 0] = ' ';
+            expected.Grid[1, 1] = ' ';
 
-            Assert.Equal(expected, actual);
+            Assert.True(cell.TrySpawnBoxAtSpaceRandomly());
+            Assert.Equal(cell.Grid, expected.Grid);
         }
     }
 }

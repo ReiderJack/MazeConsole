@@ -9,9 +9,19 @@ namespace Maze
     public class MazeGenerator
     {
 
-        public readonly Cell[,] MazeGrid;
+        public Cell[,] MazeGrid;
         public Cell StartingCell { get; }
         public Cell CurrentCell { get; private set; }
+
+        public MazeGenerator()
+        {
+
+        }
+
+        public MazeGenerator(Cell[,] maze)
+        {
+            MazeGrid = maze;
+        }
 
         public MazeGenerator(int yLength, int xLength)
         {
@@ -201,14 +211,36 @@ namespace Maze
             return list;
         }
 
-        public static IEnumerable<string> GetStringsFromFile(string filePath)
+        public char[,] GetMazeAsCharGrid()
+        {
+            var strings = GetMazeInRowsAsStrings().ToList();
+            int lenghtY = strings.Count;
+            int lenghtX = strings[0].Length;
+            char[,] result = new char[lenghtY, lenghtY];
+            for (int y = 0; y < lenghtY; y++)
+            {
+                for (int x = 0; x < lenghtX; x++)
+                {
+                    result[y, x] = strings[y][x];
+                }
+            }
+
+            return result;
+
+        }
+
+        public void GetMazeFromFile(string filePath)
+        {
+            MazeGrid = GetMazeFromStrings(GetStringsFromFile(filePath));
+        }
+
+        public IEnumerable<string> GetStringsFromFile(string filePath)
         {
             List<string> result = new List<string>();
-            using (Stream s = File.OpenRead(filePath))
-            using (TextReader reader = new StreamReader(s))
+            using (StreamReader reader = new StreamReader(filePath))
             {
-                string line = reader.ReadLine();
-                while (line != null)
+                string line;
+                while ((line = reader.ReadLine()) != null)
                 {
                     result.Add(line);
                 }
@@ -216,7 +248,7 @@ namespace Maze
             return result;
         }
 
-        public static Cell[,] GetMazeFromStrings(IEnumerable<string> strings)
+        private Cell[,] GetMazeFromStrings(IEnumerable<string> strings)
         {
             List<string> strList = strings.ToList();
             int rowCount = strings.Count();
