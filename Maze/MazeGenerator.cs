@@ -32,7 +32,7 @@ namespace Maze
             CarveMaze();
         }
 
-        public bool TrySpawnBoxesRandomly(int count)
+        public bool SpawnBoxesRandomly(int count)
         {
             if (count <= 0 || count > CellsGrid.Length) return false;
             Random random = new Random();

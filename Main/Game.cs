@@ -32,14 +32,15 @@ namespace Main
             try
             {
                 var generator = TryCreateMaze();
-                Console.WriteLine("Write path where to save");
-                string inputPath = Console.ReadLine();
-                var uri = new Uri(inputPath);
-                string absolutePath = uri.AbsolutePath;
+                Console.WriteLine("Write path where to save maze: ");
 
+                var absolutePath = TryCreateAFile();
                 SaveDungeonToFile(generator, absolutePath);
                 Console.WriteLine($"Dungeon was created at \"{absolutePath}\"");
                 SpawnBoxes(generator);
+                Console.WriteLine("Write path where to save box locations: ");
+                absolutePath = TryCreateAFile();
+                SaveBoxLocationsToFile(absolutePath, generator);
                 Console.WriteLine("Press enter to start.");
                 if (Console.ReadKey().Key == ConsoleKey.Enter) StartGame(generator);
             }
@@ -47,6 +48,43 @@ namespace Main
             {
                 Console.WriteLine(e.Message);
             }
+        }
+
+        private string TryCreateAFile()
+        {
+            string inputPath = Console.ReadLine();
+            var uri = new Uri(inputPath);
+            return uri.AbsolutePath;
+        }
+
+        private void SaveBoxLocationsToFile(string filePath, MazeGenerator generator)
+        {
+            var grid = generator.GetMazeAsCharGrid();
+            var points = GetBoxesFromTileGrid(grid).ToArray();
+            using (Stream s = File.Create(filePath))
+            using (TextWriter writer = new StreamWriter(s))
+            {
+                for (int i = 0; i < points.Count(); i++)
+                {
+                    writer.WriteLine($"Box {i}: x:{points[i].X}, y:{points[i].Y}");
+                }
+            }
+        }
+
+        private IEnumerable<Point> GetBoxesFromTileGrid(char[,] tileGrid)
+        {
+            List<Point> points = new List<Point>();
+            for (int y = 0; y < tileGrid.GetLength(0); y++)
+            {
+                for (int x = 0; x < tileGrid.GetLength(1); x++)
+                {
+                    if (tileGrid[y, x] == Cell.Box)
+                    {
+                        points.Add(new Point(y + 1, x + 1));
+                    }
+                }
+            }
+            return points;
         }
 
         private void SpawnBoxes(MazeGenerator generator)
@@ -60,12 +98,13 @@ namespace Main
                     Console.WriteLine("Invalid number.\nTry again:");
                 }
 
-                if (generator.TrySpawnBoxesRandomly(boxCount))
+                if (generator.SpawnBoxesRandomly(boxCount) == false)
                 {
-                    BoxCount = boxCount;
-                    break;
+                    Console.WriteLine("Number is too small or big!\nTry again:");
+                    continue;
                 }
-                Console.WriteLine("Number is too small or big!\nTry again:");
+
+                BoxCount = boxCount;
             }
         }
 
@@ -90,14 +129,15 @@ namespace Main
         private void OpenMaze()
         {
             Console.WriteLine("Write dungeon path:");
-            string input = Console.ReadLine();
             try
             {
-                var uri = new Uri(input);
-                string absolutePath = uri.AbsolutePath;
+                var absolutePath = TryCreateAFile();
                 var maze = GetMazeFromFile(absolutePath);
                 Console.WriteLine("Got maze from file.");
                 SpawnBoxes(maze);
+                Console.WriteLine("Write path where to save box locations: ");
+                absolutePath = TryCreateAFile();
+                SaveBoxLocationsToFile(absolutePath, maze);
                 Console.WriteLine("Press enter to start.");
                 if (Console.ReadKey().Key == ConsoleKey.Enter) StartGame(maze);
             }
@@ -161,10 +201,8 @@ namespace Main
         {
             int boxesLeft = BoxCount - character.CollectedBoxes;
             Console.WriteLine($"Boxes left to collect: {boxesLeft}");
-            if (boxesLeft == 0) return true;
-            return false;
+            return boxesLeft == 0;
         }
-
 
         public void PrintMainMenu()
         {
