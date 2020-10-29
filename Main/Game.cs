@@ -1,10 +1,14 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Maze;
 
 namespace Main
 {
     public class Game
     {
+        public int BoxCount { get; private set; }
         public void MainMenu()
         {
             PrintMainMenu();
@@ -33,20 +37,35 @@ namespace Main
                 var uri = new Uri(inputPath);
                 string absolutePath = uri.AbsolutePath;
 
-                Console.WriteLine("Write box count to spawn: ");
-                int boxCount;
-                while (int.TryParse(Console.ReadLine(), out boxCount) == false)
-                {
-                    Console.WriteLine("Invalid number.\nTry again:");
-                }
-                generator.SpawnBoxesRandomly(boxCount);
-                generator.SaveDungeonToFile(absolutePath);
-                Console.WriteLine($"Dungeon was created at \"{absolutePath}\"\nPress enter to start.");
+                SaveDungeonToFile(generator, absolutePath);
+                Console.WriteLine($"Dungeon was created at \"{absolutePath}\"");
+                SpawnBoxes(generator);
+                Console.WriteLine("Press enter to start.");
                 if (Console.ReadKey().Key == ConsoleKey.Enter) StartGame(generator);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
+            }
+        }
+
+        private void SpawnBoxes(MazeGenerator generator)
+        {
+            Console.WriteLine("Write box count to spawn: ");
+            int boxCount;
+            while (BoxCount <= 0)
+            {
+                while (int.TryParse(Console.ReadLine(), out boxCount) == false)
+                {
+                    Console.WriteLine("Invalid number.\nTry again:");
+                }
+
+                if (generator.TrySpawnBoxesRandomly(boxCount))
+                {
+                    BoxCount = boxCount;
+                    break;
+                }
+                Console.WriteLine("Number is too small or big!\nTry again:");
             }
         }
 
@@ -76,10 +95,11 @@ namespace Main
             {
                 var uri = new Uri(input);
                 string absolutePath = uri.AbsolutePath;
-                var generator = new MazeGenerator();
-                generator.GetMazeFromFile(absolutePath);
-                Console.WriteLine("Got maze from file.\nPress enter to start.");
-                if (Console.ReadKey().Key == ConsoleKey.Enter) StartGame(generator);
+                var maze = GetMazeFromFile(absolutePath);
+                Console.WriteLine("Got maze from file.");
+                SpawnBoxes(maze);
+                Console.WriteLine("Press enter to start.");
+                if (Console.ReadKey().Key == ConsoleKey.Enter) StartGame(maze);
             }
             catch (Exception e)
             {
@@ -116,7 +136,7 @@ namespace Main
                         break;
                 }
                 DrawMaze(character.Maze);
-                if (AnnounceLeftBoxes(character, generator))
+                if (AnnounceLeftBoxes(character))
                 {
                     Console.WriteLine("You collected all boxes!\nYou won!\nPress Escape to exit.");
                     break;
@@ -137,9 +157,9 @@ namespace Main
             }
         }
 
-        private bool AnnounceLeftBoxes(Character character, MazeGenerator maze)
+        private bool AnnounceLeftBoxes(Character character)
         {
-            int boxesLeft = maze.BoxCount - character.CollectedBoxes;
+            int boxesLeft = BoxCount - character.CollectedBoxes;
             Console.WriteLine($"Boxes left to collect: {boxesLeft}");
             if (boxesLeft == 0) return true;
             return false;
@@ -152,6 +172,41 @@ namespace Main
             Console.WriteLine("1) Create new maze.");
             Console.WriteLine("2) Open maze.");
             Console.WriteLine("Press escape to exit.");
+        }
+
+        private MazeGenerator GetMazeFromFile(string filePath)
+        {
+            var CellsGrid = MazeGenerator.GetMazeFromStrings(GetStringsFromFile(filePath));
+            var maze = new MazeGenerator(CellsGrid);
+            foreach (var cell in CellsGrid.Cast<Cell>())
+            {
+                BoxCount += cell.Grid.Cast<char>().Count(c => c == Cell.Box);
+            }
+            return maze;
+        }
+
+        private IEnumerable<string> GetStringsFromFile(string filePath)
+        {
+            List<string> result = new List<string>();
+            using (StreamReader reader = new StreamReader(filePath))
+            {
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    result.Add(line);
+                }
+            }
+            return result;
+        }
+
+        private void SaveDungeonToFile(MazeGenerator maze, string path)
+        {
+            using Stream s = File.Create(path);
+            using TextWriter writer = new StreamWriter(s);
+            foreach (string row in maze.GetMazeInRowsAsStrings())
+            {
+                writer.WriteLine(row);
+            }
         }
     }
 }

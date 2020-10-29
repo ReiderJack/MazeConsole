@@ -11,7 +11,6 @@ namespace Maze
         public Cell[,] CellsGrid;
         public Cell StartingCell { get; }
         public Cell CurrentCell { get; private set; }
-        public int BoxCount { get; private set; }
 
         public MazeGenerator()
         {
@@ -33,10 +32,9 @@ namespace Maze
             CarveMaze();
         }
 
-        public void SpawnBoxesRandomly(int count)
+        public bool TrySpawnBoxesRandomly(int count)
         {
-            BoxCount = count;
-            // Count should not be more than cells
+            if (count <= 0 || count > CellsGrid.Length) return false;
             Random random = new Random();
             List<Cell> checkedCells = new List<Cell>();
             int lengthY = CellsGrid.GetLength(0);
@@ -52,6 +50,7 @@ namespace Maze
                     count--;
                 }
             }
+            return true;
         }
 
         private Cell[,] GenerateAnEmptyMaze(int yLength, int xLength)
@@ -178,31 +177,8 @@ namespace Maze
             }
 
             return result;
-
         }
 
-        public void GetMazeFromFile(string filePath)
-        {
-            CellsGrid = GetMazeFromStrings(GetStringsFromFile(filePath));
-            foreach (var cell in CellsGrid.Cast<Cell>())
-            {
-                BoxCount += GetBoxesFromCell(cell);
-            }
-        }
-
-        public IEnumerable<string> GetStringsFromFile(string filePath)
-        {
-            List<string> result = new List<string>();
-            using (StreamReader reader = new StreamReader(filePath))
-            {
-                string line;
-                while ((line = reader.ReadLine()) != null)
-                {
-                    result.Add(line);
-                }
-            }
-            return result;
-        }
 
         public static Cell[,] GetMazeFromStrings(IEnumerable<string> strings)
         {
@@ -231,21 +207,5 @@ namespace Maze
             return maze;
         }
 
-        private int GetBoxesFromCell(Cell cell)
-        {
-            return cell.Grid.Cast<char>().Count(c => c == Cell.Box);
-        }
-
-        public void SaveDungeonToFile(string path)
-        {
-            using (Stream s = File.Create(path))
-            using (TextWriter writer = new StreamWriter(s))
-            {
-                foreach (string row in GetMazeInRowsAsStrings())
-                {
-                    writer.WriteLine(row);
-                }
-            }
-        }
     }
 }
