@@ -8,28 +8,25 @@ namespace Maze
 {
     public class MazeGenerator
     {
-
-        public Cell[,] MazeGrid;
+        public Cell[,] CellsGrid;
         public Cell StartingCell { get; }
         public Cell CurrentCell { get; private set; }
-        private int boxCount = 0;
-        public int BoxCount => boxCount; 
+        public int BoxCount { get; private set; }
 
         public MazeGenerator()
         {
-
         }
 
         public MazeGenerator(Cell[,] maze)
         {
-            MazeGrid = maze;
+            CellsGrid = maze;
         }
 
         public MazeGenerator(int yLength, int xLength)
         {
-            MazeGrid = GenerateAnEmptyMaze(yLength, xLength);
-            SetStartingCell(MazeGrid);
-            StartingCell = MazeGrid[0, 0];
+            CellsGrid = GenerateAnEmptyMaze(yLength, xLength);
+            SetStartingCell(CellsGrid);
+            StartingCell = CellsGrid[0, 0];
             CurrentCell = StartingCell;
             CurrentCell.IsVisited = true;
             PopulateAllCells();
@@ -38,20 +35,20 @@ namespace Maze
 
         public void SpawnBoxesRandomly(int count)
         {
-            boxCount = count;
+            BoxCount = count;
             // Count should not be more than cells
             Random random = new Random();
             List<Cell> checkedCells = new List<Cell>();
-            int lengthY = MazeGrid.GetLength(0);
-            int lengthX = MazeGrid.GetLength(1);
+            int lengthY = CellsGrid.GetLength(0);
+            int lengthX = CellsGrid.GetLength(1);
             while (count > 0)
             {
                 int randomY = random.Next(0, lengthY);
                 int randomX = random.Next(0, lengthX);
-                if (checkedCells.Contains(MazeGrid[randomY, randomX])) continue;
-                if (MazeGrid[randomY, randomX].TrySpawnBoxAtSpaceRandomly())
+                if (checkedCells.Contains(CellsGrid[randomY, randomX])) continue;
+                if (CellsGrid[randomY, randomX].TrySpawnBoxAtSpaceRandomly())
                 {
-                    checkedCells.Add(MazeGrid[randomY, randomX]);
+                    checkedCells.Add(CellsGrid[randomY, randomX]);
                     count--;
                 }
             }
@@ -88,107 +85,59 @@ namespace Maze
 
         private void PopulateAllCells()
         {
-            for (int y = 0; y < MazeGrid.GetLength(0); y++)
+            for (int y = 0; y < CellsGrid.GetLength(0); y++)
             {
-                for (int x = 0; x < MazeGrid.GetLength(1); x++)
+                for (int x = 0; x < CellsGrid.GetLength(1); x++)
                 {
-                    PopulateCellNeighbours(MazeGrid, MazeGrid[y, x]);
+                    CellsGrid[y, x].AddAllCloseNeighboursFromMaze(CellsGrid);
                 }
-            }
-        }
-
-        private void PopulateCellNeighbours(Cell[,] maze, Cell cell)
-        {
-            int mazeYLength = maze.GetLength(0);
-            int downCoordinate = cell.PointInMaze.Y + 1;
-            if (downCoordinate < mazeYLength)
-            {
-                Cell down = maze[downCoordinate, cell.PointInMaze.X];
-                cell.NeighbourCells.Add(down);
-            }
-            int upCoordinate = cell.PointInMaze.Y - 1;
-            if (upCoordinate >= 0)
-            {
-                Cell up = maze[upCoordinate, cell.PointInMaze.X];
-                cell.NeighbourCells.Add(up);
-            }
-
-            int rightCoordinate = cell.PointInMaze.X + 1;
-            int mazeXLength = maze.GetLength(1);
-            if (rightCoordinate < mazeXLength)
-            {
-                Cell right = maze[cell.PointInMaze.Y, rightCoordinate];
-                cell.NeighbourCells.Add(right);
-            }
-            int leftCoordinate = cell.PointInMaze.X - 1;
-            if (leftCoordinate >= 0)
-            {
-                Cell left = maze[cell.PointInMaze.Y, leftCoordinate];
-                cell.NeighbourCells.Add(left);
             }
         }
 
         private void CarveMaze()
         {
             Random random = new Random();
-            while (MazeGrid.Cast<Cell>().Any(c => !c.IsVisited))
+            while (CellsGrid.Cast<Cell>().Any(c => !c.IsVisited))
             {
-                Cell nextCell = GetRandomNotVisitedNeighbourOrNull(random);
+                Cell nextCell = CurrentCell.GetRandomNotVisitedNeighbourOrNull(random);
                 if (nextCell == null)
                 {
                     CurrentCell = CurrentCell.PreviousCell;
                     continue;
                 }
-                MakePathToUnVisitedCell(nextCell);
+                MakePathBetweenCells(CurrentCell, nextCell);
+                MoveCurrentCellTo(nextCell);
             }
         }
 
-        private Cell GetRandomNotVisitedNeighbourOrNull(Random random)
+        private void MoveCurrentCellTo(Cell nextCell)
         {
-            var neighbours = CurrentCell.NeighbourCells;
-            var neighboursCount = neighbours.Count();
-            var checkedNeighbours = new List<int>();
-            while (neighboursCount > checkedNeighbours.Count())
-            {
-                int randomNum = random.Next(0, neighboursCount);
-
-                if (checkedNeighbours.Contains(randomNum)) continue;
-                checkedNeighbours.Add(randomNum);
-
-                if (neighbours[randomNum].IsVisited) continue;
-                return neighbours[randomNum];
-            }
-
-            return null;
-        }
-
-        private void MakePathToUnVisitedCell(Cell nextCell)
-        {
-            Point neighbourCellGridCellToOpen = CurrentCell.PointInGrid;
-            Point nextCellDirection = nextCell.PointInMaze - CurrentCell.PointInMaze;
-            Point wallToDestroyInNextGrid = CurrentCell.PointInGrid - nextCellDirection;
-            if (wallToDestroyInNextGrid.Y <= 1 && wallToDestroyInNextGrid.Y >= 0 &&
-                    wallToDestroyInNextGrid.X <= 1 && wallToDestroyInNextGrid.X >= 0)
-            {
-                neighbourCellGridCellToOpen = wallToDestroyInNextGrid;
-            }
-
-            Point wallToDestroyInCurrentCellGrid = CurrentCell.PointInGrid + nextCellDirection;
-            if (wallToDestroyInCurrentCellGrid.Y <= 1 && wallToDestroyInCurrentCellGrid.Y >= 0 &&
-                    wallToDestroyInCurrentCellGrid.X <= 1 && wallToDestroyInCurrentCellGrid.X >= 0)
-            {
-                CurrentCell.Grid[Math.Abs(wallToDestroyInCurrentCellGrid.Y),
-                    Math.Abs(wallToDestroyInCurrentCellGrid.X)] = Cell.Space;
-                CurrentCell.PointInGrid = wallToDestroyInCurrentCellGrid;
-            }
-
-            nextCell.Grid[Math.Abs(neighbourCellGridCellToOpen.Y),
-                Math.Abs(neighbourCellGridCellToOpen.X)] = Cell.Space;
             nextCell.IsVisited = true;
-            nextCell.PointInGrid = neighbourCellGridCellToOpen;
             nextCell.PreviousCell = CurrentCell;
-
             CurrentCell = nextCell;
+        }
+
+        public static void MakePathBetweenCells(Cell startCell, Cell nextCell)
+        {
+            Point directionToNextCell = nextCell.PointInMaze - startCell.PointInMaze;
+            Point tileToOpenInNextCell = startCell.PointInGrid - directionToNextCell;
+            if (tileToOpenInNextCell.Y > 1 || tileToOpenInNextCell.Y < 0 ||
+                    tileToOpenInNextCell.X > 1 || tileToOpenInNextCell.X < 0)
+            {
+                tileToOpenInNextCell = startCell.PointInGrid;
+            }
+            nextCell.Grid[Math.Abs(tileToOpenInNextCell.Y),
+                Math.Abs(tileToOpenInNextCell.X)] = Cell.Space;
+            nextCell.PointInGrid = tileToOpenInNextCell;
+
+            Point tileToOpenInStartCell = startCell.PointInGrid + directionToNextCell;
+            if (tileToOpenInStartCell.Y <= 1 && tileToOpenInStartCell.Y >= 0 &&
+                    tileToOpenInStartCell.X <= 1 && tileToOpenInStartCell.X >= 0)
+            {
+                startCell.Grid[Math.Abs(tileToOpenInStartCell.Y),
+                    Math.Abs(tileToOpenInStartCell.X)] = Cell.Space;
+                startCell.PointInGrid = tileToOpenInStartCell;
+            }
         }
 
         public IEnumerable<string> GetMazeInRowsAsStrings()
@@ -196,14 +145,14 @@ namespace Maze
             var list = new List<string>();
             StringBuilder firstRow = new StringBuilder();
             StringBuilder secondRow = new StringBuilder();
-            for (int y = 0; y < MazeGrid.GetLength(0); y++)
+            for (int y = 0; y < CellsGrid.GetLength(0); y++)
             {
-                for (int x = 0; x < MazeGrid.GetLength(1); x++)
+                for (int x = 0; x < CellsGrid.GetLength(1); x++)
                 {
-                    firstRow.Append(MazeGrid[y, x].Grid[0, 0]);
-                    firstRow.Append(MazeGrid[y, x].Grid[0, 1]);
-                    secondRow.Append(MazeGrid[y, x].Grid[1, 0]);
-                    secondRow.Append(MazeGrid[y, x].Grid[1, 1]);
+                    firstRow.Append(CellsGrid[y, x].Grid[0, 0]);
+                    firstRow.Append(CellsGrid[y, x].Grid[0, 1]);
+                    secondRow.Append(CellsGrid[y, x].Grid[1, 0]);
+                    secondRow.Append(CellsGrid[y, x].Grid[1, 1]);
                 }
                 list.Add(firstRow.ToString());
                 list.Add(secondRow.ToString());
@@ -234,10 +183,10 @@ namespace Maze
 
         public void GetMazeFromFile(string filePath)
         {
-            MazeGrid = GetMazeFromStrings(GetStringsFromFile(filePath));
-            foreach (var cell in MazeGrid.Cast<Cell>())
+            CellsGrid = GetMazeFromStrings(GetStringsFromFile(filePath));
+            foreach (var cell in CellsGrid.Cast<Cell>())
             {
-               boxCount += GetBoxesFromCell(cell); 
+                BoxCount += GetBoxesFromCell(cell);
             }
         }
 

@@ -26,6 +26,54 @@ namespace Maze
             PointInGrid = new Point(1, 1);
         }
 
+        public Cell GetRandomNotVisitedNeighbourOrNull(Random random)
+        {
+            var neighbours = NeighbourCells;
+            var neighboursCount = neighbours.Count;
+            var checkedNeighbours = new List<int>();
+            while (neighboursCount > checkedNeighbours.Count)
+            {
+                int randomNum = random.Next(0, neighboursCount);
+
+                if (checkedNeighbours.Contains(randomNum)) continue;
+                checkedNeighbours.Add(randomNum);
+
+                if (neighbours[randomNum].IsVisited) continue;
+                return neighbours[randomNum];
+            }
+
+            return null;
+        }
+
+        public void AddAllCloseNeighboursFromMaze(Cell[,] maze)
+        {
+            int lengthY = maze.GetLength(0);
+            int downY = PointInMaze.Y + 1;
+            TryAddNeighbourFromMaze(downY, PointInMaze.X, maze, downY < lengthY);
+
+            int upY = PointInMaze.Y - 1;
+            TryAddNeighbourFromMaze(upY, PointInMaze.X, maze, upY >= 0);
+
+            int lengthX = maze.GetLength(1);
+            int rightX = PointInMaze.X + 1;
+            TryAddNeighbourFromMaze(PointInMaze.Y, rightX, maze, rightX < lengthX);
+
+            int leftX = PointInMaze.X - 1;
+            TryAddNeighbourFromMaze(PointInMaze.Y, leftX, maze, leftX >= 0);
+        }
+
+        private void TryAddNeighbourFromMaze(int y, int x, Cell[,] maze, bool areYAndXInMazeBounds)
+        {
+            if (areYAndXInMazeBounds)
+            {
+                Cell cell = maze[y, x];
+                if (NeighbourCells.Contains(cell) == false)
+                {
+                    NeighbourCells.Add(cell);
+                }
+            }
+        }
+
         public bool TrySpawnBoxAtSpaceRandomly()
         {
             Point? spacePoint = TryGetTilePointRandom(Space);
