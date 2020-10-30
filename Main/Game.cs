@@ -41,8 +41,11 @@ namespace Main
                 Console.WriteLine("Write path where to save box locations: ");
                 absolutePath = TryCreateAFile();
                 SaveBoxLocationsToFile(absolutePath, generator);
+                char[,] maze = generator.GetMazeAsCharGrid();
+                Point chracterLocation = GetRandomEmptyTileLocation(maze);
+                SaveCharacterLocationToFile(absolutePath, chracterLocation);
                 Console.WriteLine("Press enter to start.");
-                if (Console.ReadKey().Key == ConsoleKey.Enter) StartGame(generator);
+                if (Console.ReadKey().Key == ConsoleKey.Enter) StartGame(maze, chracterLocation);
             }
             catch (Exception e)
             {
@@ -66,8 +69,17 @@ namespace Main
             {
                 for (int i = 0; i < points.Count(); i++)
                 {
-                    writer.WriteLine($"Box {i}: x:{points[i].X}, y:{points[i].Y}");
+                    writer.WriteLine($"Box {i}: x:{points[i].X + 1}, y:{points[i].Y + 1}");
                 }
+            }
+        }
+
+        private void SaveCharacterLocationToFile(string filePath, Point loacation)
+        {
+            using (Stream s = new FileStream(filePath, FileMode.Append, FileAccess.Write))
+            using (TextWriter writer = new StreamWriter(s))
+            {
+                writer.WriteLine($"Character spawn location: x:{loacation.X + 1}, y:{loacation.Y + 1}");
             }
         }
 
@@ -80,7 +92,7 @@ namespace Main
                 {
                     if (tileGrid[y, x] == Cell.Box)
                     {
-                        points.Add(new Point(y + 1, x + 1));
+                        points.Add(new Point(y, x));
                     }
                 }
             }
@@ -132,14 +144,17 @@ namespace Main
             try
             {
                 var absolutePath = TryCreateAFile();
-                var maze = GetMazeFromFile(absolutePath);
+                var generator = GetMazeFromFile(absolutePath);
                 Console.WriteLine("Got maze from file.");
-                SpawnBoxes(maze);
+                SpawnBoxes(generator);
                 Console.WriteLine("Write path where to save box locations: ");
                 absolutePath = TryCreateAFile();
-                SaveBoxLocationsToFile(absolutePath, maze);
+                SaveBoxLocationsToFile(absolutePath, generator);
+                char[,] maze = generator.GetMazeAsCharGrid();
+                Point characterLocation = GetRandomEmptyTileLocation(maze);
+                SaveCharacterLocationToFile(absolutePath, characterLocation);
                 Console.WriteLine("Press enter to start.");
-                if (Console.ReadKey().Key == ConsoleKey.Enter) StartGame(maze);
+                if (Console.ReadKey().Key == ConsoleKey.Enter) StartGame(maze, characterLocation);
             }
             catch (Exception e)
             {
@@ -147,12 +162,11 @@ namespace Main
             }
         }
 
-        private void StartGame(MazeGenerator generator)
+        private void StartGame(char[,] maze, Point characterLocation)
         {
-            var mazeAsChars = generator.GetMazeAsCharGrid();
-            Character character = new Character(new Point(1, 1), mazeAsChars);
+            Character character = new Character(characterLocation, maze);
             Console.CursorVisible = false;
-            DrawMaze(mazeAsChars);
+            DrawMaze(maze);
 
             ConsoleKeyInfo keyInfo;
             while ((keyInfo = Console.ReadKey(true)).Key != ConsoleKey.Escape)
@@ -180,6 +194,23 @@ namespace Main
                 {
                     Console.WriteLine("You collected all boxes!\nYou won!\nPress Escape to exit.");
                     break;
+                }
+            }
+        }
+
+        private Point GetRandomEmptyTileLocation(char[,] maze)
+        {
+            int lengthY = maze.GetLength(0);
+            int lengthX = maze.GetLength(1);
+            var random = new Random();
+            while (true)
+            {
+                int cellY = random.Next(0, lengthY);
+                int cellX = random.Next(0, lengthX);
+                var cell = maze[cellY, cellX];
+                if (cell == Cell.Space)
+                {
+                    return new Point(cellY, cellX);
                 }
             }
         }
