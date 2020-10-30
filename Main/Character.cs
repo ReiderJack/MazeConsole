@@ -17,7 +17,7 @@ namespace Main
             Console.SetCursorPosition(CurrentPosition.Y, CurrentPosition.X);
         }
 
-        public void MoveHero(int y, int x)
+        public Point? TryMoveHero(int y, int x)
         {
             Point nextPosition = new Point(CurrentPosition.Y + y, CurrentPosition.X + x);
             if (CanMoveTo(nextPosition.Y, nextPosition.X))
@@ -26,7 +26,10 @@ namespace Main
                 CurrentPosition = nextPosition;
                 Maze[CurrentPosition.Y, CurrentPosition.X] = '@';
                 Console.CursorVisible = false;
+                return new Point(CurrentPosition.Y, CurrentPosition.X);
             }
+
+            return null;
         }
 
         private void RemoveHero()

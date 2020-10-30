@@ -42,10 +42,17 @@ namespace Main
                 absolutePath = TryCreateAFile();
                 SaveBoxLocationsToFile(absolutePath, generator);
                 char[,] maze = generator.GetMazeAsCharGrid();
-                Point chracterLocation = GetRandomEmptyTileLocation(maze);
-                SaveCharacterLocationToFile(absolutePath, chracterLocation);
+                Point characterLocation = GetRandomEmptyTileLocation(maze);
+                SaveCharacterLocationToFile(absolutePath, characterLocation);
                 Console.WriteLine("Press enter to start.");
-                if (Console.ReadKey().Key == ConsoleKey.Enter) StartGame(maze, chracterLocation);
+                if (Console.ReadKey().Key == ConsoleKey.Enter)
+                {
+                    List<Point> path = StartGame(maze, characterLocation);
+                    Console.WriteLine("Write path where to save character path in the maze: ");
+                    absolutePath = TryCreateAFile();
+                    SaveCharacterPathToFile(absolutePath, path);
+                    Console.WriteLine($"Path was saved in \"{absolutePath}\"");
+                }
             }
             catch (Exception e)
             {
@@ -69,7 +76,7 @@ namespace Main
             {
                 for (int i = 0; i < points.Count(); i++)
                 {
-                    writer.WriteLine($"Box {i}: x:{points[i].X + 1}, y:{points[i].Y + 1}");
+                    writer.WriteLine($"Box {i}: x:{points[i].X}, y:{points[i].Y}");
                 }
             }
         }
@@ -79,7 +86,20 @@ namespace Main
             using (Stream s = new FileStream(filePath, FileMode.Append, FileAccess.Write))
             using (TextWriter writer = new StreamWriter(s))
             {
-                writer.WriteLine($"Character spawn location: x:{loacation.X + 1}, y:{loacation.Y + 1}");
+                writer.WriteLine($"Character spawn location: x:{loacation.X}, y:{loacation.Y}");
+            }
+        }
+
+        private void SaveCharacterPathToFile(string file, List<Point> points)
+        {
+            using (Stream s = new FileStream(file, FileMode.OpenOrCreate, FileAccess.Write))
+            using (StreamWriter writer = new StreamWriter(s))
+            {
+                writer.WriteLine("(x, y)");
+                foreach (var point in points)
+                {
+                    writer.WriteLine($"({point.X}, {point.Y})");
+                }
             }
         }
 
@@ -154,7 +174,14 @@ namespace Main
                 Point characterLocation = GetRandomEmptyTileLocation(maze);
                 SaveCharacterLocationToFile(absolutePath, characterLocation);
                 Console.WriteLine("Press enter to start.");
-                if (Console.ReadKey().Key == ConsoleKey.Enter) StartGame(maze, characterLocation);
+                if (Console.ReadKey().Key == ConsoleKey.Enter)
+                {
+                    List<Point> path = StartGame(maze, characterLocation);
+                    Console.WriteLine("Write path where to save character path in the maze: ");
+                    absolutePath = TryCreateAFile();
+                    SaveCharacterPathToFile(absolutePath, path);
+                    Console.WriteLine($"Path was saved in \"{absolutePath}\"");
+                }
             }
             catch (Exception e)
             {
@@ -162,9 +189,11 @@ namespace Main
             }
         }
 
-        private void StartGame(char[,] maze, Point characterLocation)
+        private List<Point> StartGame(char[,] maze, Point characterLocation)
         {
+            List<Point> characterPath = new List<Point>();
             Character character = new Character(characterLocation, maze);
+            Point currentCharLocation = characterLocation;
             Console.CursorVisible = false;
             DrawMaze(maze);
 
@@ -174,19 +203,19 @@ namespace Main
                 switch (keyInfo.Key)
                 {
                     case ConsoleKey.UpArrow:
-                        character.MoveHero(-1, 0);
+                        MoveHeroAndAddPosition(character, -1, 0, characterPath);
                         break;
 
                     case ConsoleKey.RightArrow:
-                        character.MoveHero(0, 1);
+                        MoveHeroAndAddPosition(character, 0, 1, characterPath);
                         break;
 
                     case ConsoleKey.DownArrow:
-                        character.MoveHero(1, 0);
+                        MoveHeroAndAddPosition(character, 1, 0, characterPath);
                         break;
 
                     case ConsoleKey.LeftArrow:
-                        character.MoveHero(0, -1);
+                        MoveHeroAndAddPosition(character, 0, -1, characterPath);
                         break;
                 }
                 DrawMaze(character.Maze);
@@ -196,7 +225,18 @@ namespace Main
                     break;
                 }
             }
+            return characterPath;
         }
+
+        private void MoveHeroAndAddPosition(Character character, int y, int x, List<Point> points)
+        {
+            var point = character.TryMoveHero(y, x);
+            if (point != null)
+            {
+                points.Add(point.Value);
+            }
+        }
+
 
         private Point GetRandomEmptyTileLocation(char[,] maze)
         {
